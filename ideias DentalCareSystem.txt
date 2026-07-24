@@ -1,0 +1,375 @@
+# Sistema de Gerenciamento para Consultório Odontológico
+
+## Objetivo
+
+Desenvolver um aplicativo de gerenciamento para consultórios odontológicos utilizando **.NET MAUI + Blazor Hybrid**, com foco em:
+
+- Cadastro de pacientes
+- Anamnese
+- Agenda de consultas
+- Financeiro/Cobranças
+- Sincronização com Google Agenda
+- Possibilidade de expansão para versão Web e Mobile
+
+---
+
+# Stack Tecnológica
+
+## Front-end
+
+- .NET MAUI
+- Blazor Hybrid
+- MudBlazor (UI principal)
+
+## Banco de dados
+
+Dois modos de operação:
+
+### Offline
+- SQLite
+- Entity Framework Core
+
+### Online
+- Firebase Firestore
+
+## Autenticação
+
+Em modo online:
+
+- Firebase Authentication
+
+---
+
+# Arquitetura
+
+Separar o projeto em camadas.
+
+```
+Clinica.Shared.Domain
+Clinica.Shared.Application
+Clinica.Infrastructure.SQLite
+Clinica.Infrastructure.Firebase
+Clinica.Infrastructure.GoogleCalendar
+Clinica.App.Maui
+```
+
+A ideia é que toda a regra de negócio permaneça independente da tecnologia de armazenamento.
+
+---
+
+# Módulos
+
+## Pacientes
+
+- Cadastro
+- Histórico
+- Busca
+- Contatos
+- Observações
+
+---
+
+## Anamnese
+
+Informações como:
+
+- Doenças
+- Medicamentos
+- Alergias
+- Observações
+- Histórico de atualizações
+
+---
+
+## Agenda
+
+Funcionalidades esperadas:
+
+- Visualização por:
+    - Dia
+    - Semana
+    - Mês
+
+- Status:
+
+    - Agendado
+    - Confirmado
+    - Em atendimento
+    - Finalizado
+    - Cancelado
+    - Faltou
+
+Cada consulta deverá possuir:
+
+- Paciente
+- Horário
+- Procedimento
+- Observações
+- Valor previsto
+
+---
+
+## Financeiro
+
+Controle simples:
+
+- Atendimentos
+- Cobranças
+- Pagamentos
+- PIX
+- Cartão
+- Dinheiro
+- Pendências
+
+---
+
+# Agenda
+
+Deseja-se uma experiência semelhante ao Google Agenda.
+
+Bibliotecas avaliadas:
+
+## MudBlazor
+
+Utilizar para toda interface.
+
+Para calendário:
+
+- Heron.MudCalendar
+
+ou
+
+## Syncfusion Scheduler
+
+Vantagens:
+
+- Interface muito semelhante ao Google Calendar
+- Drag & Drop
+- Recorrência
+- Integração pronta com Google Calendar
+
+Licença Community gratuita para empresas pequenas.
+
+---
+
+# Google Calendar
+
+O sistema deverá sincronizar consultas.
+
+Fluxo:
+
+Sistema
+↓
+
+Agenda Interna
+
+↓
+
+Google Calendar API
+
+Não depender da agenda do Google para funcionar.
+
+A agenda interna será a fonte principal.
+
+---
+
+# Modos de funcionamento
+
+## Offline
+
+Objetivo:
+
+Funcionar completamente sem internet.
+
+Fluxo:
+
+SQLite
+
+↓
+
+Sistema
+
+↓
+
+Quando houver internet
+
+↓
+
+Sincroniza com Google Agenda
+
+Não depende do Firebase.
+
+---
+
+## Online
+
+Objetivo:
+
+Permitir uso em vários computadores e celulares.
+
+Fluxo:
+
+Firebase Firestore
+
+↓
+
+Sistema
+
+↓
+
+Google Calendar
+
+Todos os dispositivos compartilham a mesma base.
+
+---
+
+# Firebase
+
+Objetivos:
+
+- Sincronização em nuvem
+- Multi-dispositivo
+- Backup
+- Compartilhamento entre computador e celular
+
+Possíveis serviços:
+
+- Firestore
+- Firebase Authentication
+- Firebase Storage (para documentos e imagens)
+
+Plano Spark (gratuito) atende bem um consultório pequeno.
+
+---
+
+# Sincronização
+
+Criar um serviço dedicado.
+
+Exemplo:
+
+```
+ICalendarSyncService
+```
+
+Responsável por:
+
+- Criar eventos
+- Atualizar eventos
+- Excluir eventos
+- Comparar alterações
+
+Nunca misturar essa lógica com AgendaService.
+
+---
+
+# Repositórios
+
+Utilizar interfaces.
+
+Exemplo:
+
+```
+IPacienteRepository
+
+IAgendaRepository
+
+IFinanceiroRepository
+```
+
+Implementações:
+
+```
+PacienteRepositorySQLite
+
+PacienteRepositoryFirebase
+```
+
+A aplicação apenas injeta a implementação desejada.
+
+---
+
+# Possível evolução
+
+Versão Desktop
+
+↓
+
+Versão Mobile
+
+↓
+
+Versão Web
+
+Reaproveitando praticamente toda a interface Blazor.
+
+---
+
+# Diferenciais futuros
+
+- Notificações
+- WhatsApp
+- Envio automático de lembretes
+- Receitas
+- Prontuário odontológico
+- Upload de radiografias
+- Assinatura digital
+- Multi-clínica
+- Multi-profissional
+- Dashboard
+- Relatórios
+- Integração com Power BI
+
+---
+
+# Decisões atuais
+
+✔ MAUI + Blazor Hybrid
+
+✔ MudBlazor
+
+✔ Arquitetura em camadas
+
+✔ Google Calendar
+
+✔ Firebase como opção online
+
+✔ SQLite como opção offline
+
+✔ Código preparado para futura versão Web
+
+---
+
+# Próximos passos
+
+1. Definir entidades do domínio.
+2. Modelar banco de dados.
+3. Escolher biblioteca definitiva da Agenda.
+4. Criar layout base do sistema.
+5. Implementar autenticação.
+6. Implementar Agenda.
+7. Implementar Pacientes.
+8. Implementar Financeiro.
+9. Integrar Google Calendar.
+10. Implementar sincronização Offline/Online.
+
+Minha única sugestão de mudança
+
+Depois de entender o projeto, eu faria uma pequena alteração na arquitetura:
+
+Em vez de dois modos (Offline e Online), faria um modo híbrido desde o início.
+
+SQLite seria sempre o banco local (cache e funcionamento offline).
+Firestore seria a sincronização na nuvem.
+O usuário nem precisaria saber se está "offline" ou "online": quando houver internet, o app sincroniza automaticamente.
+
+Isso traz algumas vantagens:
+
+Funciona sem internet.
+O computador continua rápido.
+O celular usa os mesmos dados.
+O Firebase vira backup automático.
+A futura versão Web reutiliza a mesma base.
+É exatamente o modelo adotado por aplicativos como WhatsApp, Notion, Todoist e Google Keep.
+
+Se eu fosse começar esse projeto hoje, essa seria a arquitetura que eu escolheria. Ela exige um pouco mais de planejamento no início, mas evita uma futura migração de "modo offline" para "modo online".

@@ -1,0 +1,159 @@
+📄 PRD - Mínimo Produto Viável (MVP)
+Projeto: DentalCare System
+Arquitetura Base: .NET MAUI + Blazor Hybrid + MudBlazor
+
+Estratégia de Dados: Offline-First Híbrido (SQLite Local + Firebase Firestore Cloud)
+
+🎯 1. Visão Geral do Produto
+O DentalCare é um sistema de gestão para consultórios odontológicos projetado para funcionar com altíssima performance, garantindo disponibilidade total mesmo sem conexão com a internet (Offline-First).
+
+O sistema permite gerenciar o ciclo completo de atendimento do consultório: cadastro de pacientes, formulários de anamnese, agendamento de consultas com sincronização no Google Calendar e controle financeiro simplificado.
+
+👥 2. Público-Alvo e Persona
+Persona Principal: Cirurgião-Dentista autônomo ou pequenos consultórios (1 a 3 profissionais).
+
+Necessidades Primárias:
+
+Rapidez para agendar e consultar horários.
+
+Agilidade no acesso ao histórico e anamnese do paciente durante a consulta.
+
+Garantia de que o sistema não vai travar ou parar de funcionar se a internet oscilar.
+
+Sincronização automática das consultas no celular (Google Calendar).
+
+🏗️ 3. Requisitos Arquiteturais (Core)
+Abordagem Offline-First:
+
+O SQLite é a fonte primária de leitura e escrita da interface (latência zero).
+
+O Firebase Firestore atua como backup remoto e sincronização multi-dispositivo em background.
+
+Mudanças locais devem ser marcadas para sincronização via flag de controle (IsSynced).
+
+Arquitetura em Camadas (Clean Architecture):
+
+Clinica.Shared.Domain
+
+Clinica.Shared.Application
+
+Clinica.Infrastructure.SQLite
+
+Clinica.Infrastructure.Firebase
+
+Clinica.Infrastructure.GoogleCalendar
+
+Clinica.App.Maui
+
+Padrão de Entidades Base:
+
+Todas as entidades de domínio devem herdar de uma classe base contendo:
+
+Id (Guid)
+
+CreatedAt (DateTimeOffset)
+
+UpdatedAt (DateTimeOffset)
+
+IsDeleted (bool - Soft Delete)
+
+IsSynced (bool)
+
+🛠️ 4. Funcionalidades do MVP (Escopo V1)
+🔴 Módulo 1: Autenticação & Configuração do Perfil
+[ ] Login / Autenticação:
+
+Login com E-mail/Senha via Firebase Authentication (quando online).
+
+Persistência de token local para permitir login contínuo em modo offline.
+
+[ ] Perfil da Clínica/Dentista:
+
+Cadastro de informações básicas (Nome do Profissional, CRO, Nome da Clínica, Telefone, Logotipo).
+
+🟢 Módulo 2: Gestão de Pacientes & Anamnese
+[ ] Cadastro de Pacientes:
+
+Dados Pessoais: Nome completo, CPF, Data de Nascimento, Telefone/WhatsApp, E-mail, Endereço.
+
+Busca e filtragem rápida por Nome, CPF ou Telefone.
+
+[ ] Prontuário / Histórico do Paciente:
+
+Linha do tempo simples mostrando atendimentos passados, valores e observações.
+
+[ ] Anamnese Digital (Ficha de Saúde):
+
+Formulário estruturado com perguntas chave:
+
+Doenças sistêmicas (Diabetes, Hipertensão, Cardiogênicas).
+
+Uso de medicamentos contínuos / Anticoagulantes.
+
+Alergias conhecidas (Anestésicos, Penicilina, Látex, etc.).
+
+Histórico de cirurgias ou complicações odontológicas.
+
+Campo aberto para observações clínicas.
+
+🔵 Módulo 3: Agenda Inteligente
+[ ] Visualização de Agenda:
+
+Modos de visualização: Dia, Semana e Mês (via MudBlazor / Heron.MudCalendar / Syncfusion).
+
+[ ] Ciclo de Vida da Consulta (Status):
+
+Agendado ➔ Confirmado ➔ Em Atendimento ➔ Finalizado ➔ Cancelado / Faltou.
+
+[ ] Dados do Agendamento:
+
+Vínculo obrigatório com Paciente.
+
+Data, Horário de Início e Término.
+
+Tipo de Procedimento previsto.
+
+Valor estimado.
+
+Observações do agendamento.
+
+[ ] Integração Google Calendar:
+
+Envio automático de eventos para a API do Google Calendar via serviço dedicado (ICalendarSyncService).
+
+Atualização/Exclusão do evento no Google Calendar ao alterar/cancelar a consulta internamente.
+
+🟡 Módulo 4: Financeiro Simplificado
+[ ] Lançamentos de Atendimento:
+
+Registro de pagamentos associados à consulta finalizada.
+
+Formas de Pagamento: Dinheiro, PIX, Cartão de Crédito, Cartão de Débito.
+
+[ ] Controle de Pendências:
+
+Listagem de atendimentos finalizados com saldo devedor ou pagamento pendente.
+
+[ ] Resumo de Caixa (Dashboard Básico):
+
+Total faturado no dia, semana e mês.
+
+Filtro rápido por recebimentos confirmados vs. pendentes.
+
+⚙️ 5. Regras de Negócio Importantes
+Conflito de Horários: O sistema não deve permitir o agendamento de duas consultas para o mesmo profissional em horários sobrepostos.
+
+Prioridade da Agenda Interna: O Google Calendar é um espelho. Se houver divergência entre a agenda do sistema e o Google Calendar, a base de dados interna do sistema prevalece.
+
+Soft Delete: Nenhum paciente ou consulta deve ser deletado fisicamente do banco de dados SQLite (IsDeleted = true), para manter a rastreabilidade e permitir sincronização de exclusão na nuvem.
+
+🚀 6. Fora do Escopo do MVP (Para a Versão 2.0)
+Odontograma interativo gráfico em Canvas/SVG.
+
+Disparo automatizado de mensagens no WhatsApp para confirmação.
+
+Assinatura digital do paciente na tela do dispositivo.
+
+Upload e visualização de exames de raio-X / imagens.
+
+Emissão de notas fiscais e relatórios avançados em Power BI.
