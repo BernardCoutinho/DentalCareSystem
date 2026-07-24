@@ -42,6 +42,31 @@
 6. O preço aplicado deve ser preservado no item do tratamento e não pode depender exclusivamente do preço atual de uma tabela.
 7. Alterações futuras na tabela de preços não devem modificar tratamentos ou procedimentos previamente negociados.
 8. Um procedimento com movimentação financeira vinculada não pode ter sua realização desfeita sem regularização financeira.
+9. Todo procedimento disponível para contratação deve possuir um preço padrão definido na tabela de preços da clínica.
+10. Ao incluir um procedimento em um plano de tratamento, o preço padrão vigente deve ser copiado para `StandardPrice`.
+11. O preço final negociado com o paciente deve ser armazenado separadamente em `AgreedPrice`.
+12. Inicialmente, `AgreedPrice` deve ser igual a `StandardPrice`.
+13. Alterações posteriores na tabela de preços não podem modificar `StandardPrice` nem `AgreedPrice` dos itens já incluídos em planos de tratamento.
+14. `AgreedPrice` não pode ser negativo.
+15. Valores monetários devem ser representados com tipo decimal e precisão definida na persistência.
+16. O desconto ou acréscimo deve ser calculado pela diferença entre `StandardPrice` e `AgreedPrice`, sem necessidade de persistir valores redundantes.
+17. Quando `AgreedPrice` for menor que `StandardPrice`, a diferença representa um desconto.
+18. Quando `AgreedPrice` for maior que `StandardPrice`, a diferença representa um acréscimo.
+19. Administradores e dentistas podem alterar o preço negociado.
+20. Recepcionistas somente podem alterar o preço negociado quando possuírem a permissão explícita `TreatmentPlan.ChangePrice`.
+21. Ao alterar o preço negociado, o sistema deve registrar `PriceModifiedByUserId` e `PriceModifiedAtUtc`.
+
+### Cálculo de desconto e acréscimo
+
+O desconto e o acréscimo são valores derivados e não devem ser persistidos:
+
+- `DiscountAmount = max(StandardPrice - AgreedPrice, 0)`;
+- `SurchargeAmount = max(AgreedPrice - StandardPrice, 0)`;
+- `DiscountPercentage = StandardPrice > 0
+  ? DiscountAmount / StandardPrice * 100
+  : 0`.
+
+Os cálculos devem respeitar a política de arredondamento monetário definida pela aplicação.
 
 ## Dados clínicos
 
