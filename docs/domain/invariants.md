@@ -68,6 +68,50 @@ O desconto e o acréscimo são valores derivados e não devem ser persistidos:
 
 Os cálculos devem respeitar a política de arredondamento monetário definida pela aplicação.
 
+## Pagamentos e financeiro
+
+1. Todo pagamento deve pertencer a uma clínica por meio de `ClinicId`.
+2. Todo pagamento deve estar vinculado a um plano de tratamento por meio de `TreatmentPlanId`.
+3. `Payment` deve ser uma entidade própria, com identificador global gerado localmente.
+4. O valor do pagamento deve ser maior que zero e representado por tipo decimal com precisão definida na persistência.
+5. O sistema deve permitir pagamentos integrais, parciais e parcelados.
+6. Um plano de tratamento pode possuir vários pagamentos.
+7. Cada parcela deve ser representada por um pagamento independente, com valor, vencimento e situação próprios.
+8. A soma dos pagamentos recebidos deve ser utilizada para calcular o saldo pendente do plano de tratamento.
+9. A forma de pagamento deve ser registrada apenas para fins informativos no MVP.
+10. Um pagamento deve possuir uma das situações:
+    - `Pending`;
+    - `Received`;
+    - `Cancelled`;
+    - `Refunded`.
+11. Somente pagamentos com situação `Received` devem reduzir o saldo pendente do tratamento.
+12. Um pagamento somente pode assumir a situação `Received` quando possuir `ReceivedAtUtc`.
+13. `ReceivedAtUtc` deve representar a data efetiva do recebimento e não a data do procedimento, do registro ou do vencimento.
+14. Pagamentos pendentes com vencimento anterior à data atual devem ser apresentados como vencidos, sem necessidade de persistir uma situação `Overdue`.
+15. Cancelamentos e estornos devem preservar o registro para histórico e sincronização.
+16. Um pagamento cancelado ou estornado não deve reduzir o saldo pendente do tratamento.
+17. Quando o pagador for diferente do paciente, o pagamento deve permitir identificar o responsável pelo pagamento.
+18. O sistema não deve exigir documento fiscal nem confirmação de provedor externo para registrar um pagamento no MVP.
+19. A confirmação manual de recebimento deve registrar o usuário responsável e o momento da operação.
+20. Alterações financeiras concluídas localmente devem permanecer salvas mesmo sem conexão com o repositório remoto.
+21. Operações sincronizáveis de pagamento devem ser idempotentes e não podem criar recebimentos duplicados.
+22. Conflitos de sincronização envolvendo valores ou situações de pagamentos não devem ser resolvidos silenciosamente quando houver risco de alterar o saldo financeiro.
+23. Um procedimento com pagamento recebido vinculado não pode ter sua realização desfeita sem regularização financeira.
+
+### Cálculo do saldo
+
+O saldo do plano de tratamento deve ser derivado dos valores negociados e dos pagamentos efetivamente recebidos:
+
+- `TreatmentTotal = soma de AgreedPrice dos itens financeiros ativos`;
+- `ReceivedTotal = soma dos pagamentos com Status = Received`;
+- `PendingBalance = TreatmentTotal - ReceivedTotal`.
+
+Pagamentos com situação `Pending`, `Cancelled` ou `Refunded` não compõem `ReceivedTotal`.
+
+Caso um pagamento recebido seja estornado, ele deixa de compor `ReceivedTotal`. O sistema deve preservar o registro original e sua situação final.
+
+O sistema não deve permitir que um recebimento exceda o saldo pendente sem uma confirmação explícita e uma regra definida para crédito ou adiantamento.
+
 ## Dados clínicos
 
 1. Diagnóstico, anamnese, evolução, odontograma, prescrições, exames e anexos são dados clínicos sensíveis.
